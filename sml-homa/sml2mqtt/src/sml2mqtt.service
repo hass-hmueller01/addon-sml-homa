@@ -1,0 +1,13 @@
+# This file is a systemd service for sml2mqtt.
+
+[Unit]
+Description=Capture SML meter readings and publishes them on MQTT HomA framework
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=sml2mqtt -c /etc/sml2mqtt.yaml
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

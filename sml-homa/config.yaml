@@ -1,0 +1,46 @@
+# https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
+name: SML to HomA MQTT
+version: "0.1.0"
+slug: sml-homa
+description: Connect a SML (Smart Message Language) meter using the HomA MQTT framework
+url: "https://github.com/hass-hmueller01/addon-sml-homa"
+# remove the image tag if you want to use it as a local add-on
+#image: "ghcr.io/hmueller01/{arch}-addon-sml-homa" # on https://github.com
+#image: "hmueller01/homeassistant-addon-sml-homa-{arch}" # on https://hub.docker.com
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
+init: false
+options:
+  tty: "/dev/ttyUSB1"
+  homa_system_id: "123456-energy"
+  homa_device: "Energy"
+  homa_room: "Sensors"
+  hass_area: "Energie"
+  debug: false
+schema:
+  tty: "str"
+  mqtt_host: "str?"
+  mqtt_port: "int?"
+  mqtt_user: "str?"
+  mqtt_password: "str?"
+  homa_system_id: "str"
+  homa_device: "str"
+  homa_room: "str?"
+  hass_area: "str?"
+  debug: "bool?"
+usb: true
+apparmor: true
+services:
+  - mqtt:need
+devices:
+  - /dev/ttyUSB0
+  - /dev/ttyUSB1
+  - /dev/ttyUSB2
+  - /dev/ttyUSB3
+map: 
+  - type: config
+    read_only: False

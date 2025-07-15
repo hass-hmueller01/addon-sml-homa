@@ -1,0 +1,147 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Start the sml2mqtt service
+# s6-overlay docs: https://github.com/just-containers/s6-overlay
+# ==============================================================================
+
+# Declare variables
+declare config_tty
+declare config_deviceid
+declare config_systemid
+declare config_device
+declare config_room
+declare config_area
+declare config_commands
+
+declare sml2mqtt_config_file="/etc/sml2mqtt.yaml"
+
+# Fetch MQTT settings
+source /etc/services.d/get_mqtt_settings.sh
+
+# Get configuration options from user
+config_tty=$(bashio::config 'tty')
+config_deviceid=$(bashio::config 'device_id')
+config_systemid=$(bashio::config 'homa_system_id')
+config_device=$(bashio::config 'homa_device')
+config_room=$(bashio::config 'homa_room')
+config_area=$(bashio::config 'hass_area')
+
+#config_refresh_rate=$(bashio::config 'refresh') # TODO
+
+
+# Create HomA topic string with up to 3 levels of hierarchy
+# /devices/$config_systemid/<section>[/<subsection>[/<subsubsection>]]
+# Usage: get_topic <section> [<subsection>] [<subsubsection>]
+# Requires globals: config_systemid
+get_topic() {
+    local section="$1"
+    local subsection="${2:-}"
+    local subsubsection="${3:-}"
+    local base="/devices/$config_systemid"
+    if [[ -n "$subsection" && -n "$subsubsection" ]]; then
+        echo "$base/$section/$subsection/$subsubsection"
+    elif [[ -n "$subsection" ]]; then
+        echo "$base/$section/$subsection"
+    else
+        echo "$base/$section"
+    fi
+}
+
+# Publish a Home Assistant autoconfiguration message for a sensor
+# Usage: homeassistant_config _<topic> _<class> [_<unit>] [_<template>]
+# Note: Alwasy removes the leading underscore from parameters! Needed to avoid parameter shifting issues.
+# Parameters:
+# - topic: The MQTT topic for the sensor
+# - class: The device class (e.g., temperature, power_factor, etc.)
+# - unit: The unit of measurement (optional)
+# - template: The value template for the sensor (optional)
+# Requires globals: config_systemid, config_area, model_name
+homeassistant_config() {
+    local topic="${1#_}"  # Remove leading underscore
+    local class="${2#_}"
+    local unit="${3#_}"
+    local template="${4#_}"
+
+    # Required environment variables: config_systemid, config_area
+    local object_id="${config_systemid}-${topic// /-}"
+    local ha_topic="homeassistant/sensor/${object_id}/config"
+
+    # Build base payload
+    local payload
+    payload=$(jq -n \
+        --arg device_class "$class" \
+        --arg state_topic "/devices/${config_systemid}/controls/${topic}" \
+        --arg name "$topic" \
+        --arg unique_id "$object_id" \
+        --arg object_id "$object_id" \
+        --arg identifier "$config_systemid" \
+        --arg model "$model_name" \
+        --arg area "$config_area" \
+        '{
+            device_class: $device_class,
+            state_topic: $state_topic,
+            name: $name,
+            unique_id: $unique_id,
+            object_id: $object_id,
+            device: {
+                identifiers: [$identifier],
+                name: "Vcontrol",
+                manufacturer: "Viesmann",
+                model: $model,
+                suggested_area: $area
+            }
+        }'
+    )
+
+    # Add state_class if needed
+    if [[ "$class" == "temperature" || "$class" == "power_factor" ]]; then
+        payload=$(echo "$payload" | jq '.state_class = "measurement"')
+    fi
+
+    # Special treatment for _int
+    if [[ "$class" == "_int" ]]; then
+        payload=$(echo "$payload" | jq 'del(.device_class) | .native_value = "int"')
+    fi
+
+    # Special treatment for _datetime
+    if [[ "$class" == "_datetime" ]]; then
+        payload=$(echo "$payload" | jq 'del(.device_class) | .value_template = "{{ as_datetime(value) }}" | .icon = "mdi:calendar-arrow-right"')
+    fi
+
+    # Set unit_of_measurement if available
+    if [[ -n "$unit" ]]; then
+        payload=$(echo "$payload" | jq --arg unit "$unit" '.unit_of_measurement = $unit')
+    fi
+
+    # Set value_template if available
+    if [[ -n "$template" ]]; then
+        payload=$(echo "$payload" | jq --arg template "$template" '.value_template = $template')
+    fi
+
+    # Publish to MQTT
+    mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+        -t "$ha_topic" -m "$payload" -r
+}
+
+# Publish HomA room and device meta
+mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+    -t "$(get_topic meta/room)" -m "$config_room" -r
+mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+    -t "$(get_topic meta/name)" -m "$config_device" -r
+
+# Build the sml2mqtt configuration file
+echo "
+host: $MQTT_HOST
+port: $MQTT_PORT
+username: $MQTT_USER
+password: $MQTT_PASSWORD
+qos: 1
+topic: /devices/$config_systemid/controls
+id: sml2mqtt
+device: $config_tty
+" > $sml2mqtt_config_file
+
+
+# Start the sml2mqtt service
+bashio::log.info "Starting sml2mqtt..."
+exec /usr/local/sbin/sml2mqtt -v -c "$sml2mqtt_config_file"

@@ -1,0 +1,18 @@
+# Config file of sml2mqtt.
+# All settings are optional. Default or command line option will apply.
+
+# MQTT broker host name (IP or domainname)
+host: localhost
+# MQTT broker port
+port: 1883
+# MQTT login 
+username: user
+password: pass
+# MQTT QoS setting
+qos: 1
+# Topic to publish data
+topic: /devices/123456-energy/controls
+# MQTT client ID
+id: sml2mqtt
+# SML device to read from
+device: /dev/ttyUSB1

@@ -1,0 +1,31 @@
+configuration:
+  tty:
+    name: "TTY"
+    description: "Name des seriellen Ports / TTY, um mit dem Gerät zu kommunizieren."
+  mqtt_host:
+    name: "MQTT Hostname"
+    description: "Hostname eines remote MQTT brokers. Falls leer wird der interne MQTT Broker verwendet"
+  mqtt_port:
+    name: "MQTT Port"
+    description: "Port eines remote MQTT brokers. Falls leer wird der interne MQTT Broker verwendet"
+  mqtt_user:
+    name: "MQTT User"
+    description: "User eines remote MQTT brokers. Falls leer wird der default username des internen MQTT Broker verwendet"
+  mqtt_password:
+    name: "MQTT Password"
+    description: "Password eines remote MQTT brokers. Falls leer wird der interne MQTT Broker verwendet"
+  debug:
+    name: "Debug"
+    description: "Ausgabe von Debug-Nachrichten"
+  homa_system_id:
+    name: "HomA System ID"
+    description: "HomA System ID (Format: `123456-energy`)"
+  homa_device:
+    name: "HomA Device"
+    description: "HomA Gerätename (default: `Energy`)"
+  homa_room:
+    name: "HomA Room"
+    description: "HomA Raumname in dem die Daten dargestellt werden sollen (default: `Sensors`)"
+  hass_area:
+    name: "Home Assistant Area"
+    description: "Home Assistant Area Name (default: `Energie`)"
