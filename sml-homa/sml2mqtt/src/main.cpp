@@ -50,11 +50,20 @@
 
 /** abort the main loop */
 std::atomic<bool> abortLoop;
+std::atomic<bool> running(true);
 
 /** handle SIGTERM */
 void signalHandler(int /*signum*/)
 {
     abortLoop = true;
+}
+
+void publish_thread() {
+    int count = 0;
+    while (running) {
+        mqttClient()->setTopic("Current Power", std::to_string(count++));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 }
 
 /** main function */
@@ -204,6 +213,10 @@ int main(int argc, char ** argv)
     sd_notify(0, "READY=1");
 #endif
 
+    std::thread pub_thread(publish_thread);
+    pub_thread.join();
+
+    int counter = 0;
     /* start publish loop */
     while (!abortLoop) {
 #ifdef WITH_SYSTEMD
@@ -213,7 +226,9 @@ int main(int argc, char ** argv)
 
         /* read channels and publish via MQTT */
         // listen on the serial device, this call is blocking.
-        sml.transport_listen();
+        //sml.transport_listen();
+        usleep(1);
+        //mqttClient()->setTopic("Current Power", std::to_string(counter++));
     }
 
     /* delete resources */

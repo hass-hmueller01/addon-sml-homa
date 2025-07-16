@@ -28,12 +28,23 @@
 /* C++ includes */
 #include <iostream>
 #include <string>
+#include <thread>
+
+void MqttClient::mqtt_loop_thread() {
+    m_running = true;
+    // Verarbeitet Netzwerkereignisse (Blockiert, bis Verbindung unterbrochen oder Fehler)
+    int ret = loop_forever(-1, 1);
+    if (ret != MOSQ_ERR_SUCCESS) {
+        std::cerr << "mosquitto_loop_forever Fehler: " << strerror(ret) << "\n";
+    }
+    m_running = false;
+}
 
 MqttClient::MqttClient(const char * host, int port, int qos, const char * baseTopic, const char * id, const char * username, const char * password, bool verbose) :
     mosqpp::mosquittopp(id),
     m_verbose(verbose),
     m_qos(qos),
-    m_publishInProgress(false),
+    m_running(false),
     m_baseTopic(baseTopic),
     m_topicPayloads(),
     m_topicPayloadsMutex()
@@ -56,9 +67,12 @@ MqttClient::MqttClient(const char * host, int port, int qos, const char * baseTo
     if (connect_async(host, port) != MOSQ_ERR_SUCCESS) {
         std::cerr << "MqttClient::MqttClient: connect_async failed" << std::endl;
     }
-    if (loop_start() != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::MqttClient: loop_start failed" << std::endl;
-    }
+    // if (loop_start() != MOSQ_ERR_SUCCESS) {
+    //     std::cerr << "MqttClient::MqttClient: loop_start failed" << std::endl;
+    // }
+
+    std::thread loop_thread(&MqttClient::mqtt_loop_thread, this);
+    loop_thread.detach();
 }
 
 MqttClient::~MqttClient()
@@ -89,17 +103,17 @@ void MqttClient::setTopic(std::string topic, std::string payload)
     }
     m_topicPayloads[topic] = payload;
 
+    if (topic == "Current Power") { // TODO: remove this
+        topic = "counter";
+        payload = std::to_string(m_counter);
+    }
+
     /* publish */
     topic = m_baseTopic + "/" + topic;
     if (m_verbose) {
         std::cerr << topic << " : " << payload << std::endl;
     }
-    if (m_publishInProgress) {
-        std::cerr << "MqttClient::setTopic: publish already in progress " << topic << " : " << payload << std::endl;
-        //return;
-    }
-    m_publishInProgress = true;
-    int rc = publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, true);
+    int rc = publish(&m_counter, topic.c_str(), payload.length(), payload.c_str(), m_qos, true);
     if (rc != MOSQ_ERR_SUCCESS) {
         std::cerr << "MqttClient::setTopic: publish failed rc=" << rc << std::endl;
     }
@@ -166,7 +180,6 @@ void MqttClient::on_connect(int rc)
 
 void MqttClient::on_publish(int mid)
 {
-    m_publishInProgress = false;
     if (m_verbose) {
         std::cout << "MqttClient::on_publish: mid=" << mid << std::endl;
     }
@@ -185,9 +198,8 @@ void MqttClient::on_message(const struct mosquitto_message * message)
     m_topicPayloads[topic] = payload;
 }
 
-void MqttClient::on_disconnect(struct mosquitto *mosq, void *userdata, int rc)
+void MqttClient::on_disconnect(int rc)
 {
-    m_publishInProgress = false;
     if (rc != MOSQ_ERR_SUCCESS) {
         std::cerr << "MqttClient::on_disconnect: Unexpected disconnect from broker. Reason code: " << rc << std::endl;
     } else if (m_verbose) {

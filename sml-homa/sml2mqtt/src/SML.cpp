@@ -162,9 +162,15 @@ bool SML::is_open() const
     return (m_fd > 0);
 }
 
+#define MC_SML_BUFFER_LEN 8096
+
 void SML::transport_listen()
 {
-    sml_transport_listen(m_fd, [](unsigned char * buffer, size_t buffer_len) {
+    unsigned char buffer[MC_SML_BUFFER_LEN];
+    size_t buffer_len;
+
+    while ((buffer_len = sml_transport_read(m_fd, buffer, MC_SML_BUFFER_LEN)) > 0) {
+        usleep(10000); // wait 1ms to avoid flooding the MQTT broker
         /* check if MQTT client is available */
         if (!mqttClient()) {
             return;
@@ -175,6 +181,7 @@ void SML::transport_listen()
 
         /* read OBIS data */
         for (int i = 0; i < file->messages_len; i++) {
+            usleep(1000); // wait 1ms to avoid flooding the MQTT broker
             sml_message *message = file->messages[i];
             if (*message->message_body->tag == SML_MESSAGE_GET_LIST_RESPONSE) {
                 sml_list *entry;
@@ -245,5 +252,5 @@ void SML::transport_listen()
 
         /* free memory */
         sml_file_free(file);
-    });
+    }
 }
