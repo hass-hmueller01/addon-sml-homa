@@ -11,7 +11,6 @@ declare config_systemid
 declare config_device
 declare config_room
 declare config_area
-declare config_commands
 
 declare sml2mqtt_config_file="/etc/sml2mqtt.yaml"
 
@@ -25,8 +24,6 @@ config_systemid=$(bashio::config 'homa_system_id')
 config_device=$(bashio::config 'homa_device')
 config_room=$(bashio::config 'homa_room')
 config_area=$(bashio::config 'hass_area')
-
-#config_refresh_rate=$(bashio::config 'refresh') # TODO
 
 
 # Create HomA topic string with up to 3 levels of hierarchy
@@ -129,18 +126,27 @@ mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD
 mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
     -t "$(get_topic meta/name)" -m "$config_device" -r
 
-# Build the sml2mqtt configuration file
-echo "
-host: $MQTT_HOST
-port: $MQTT_PORT
-username: $MQTT_USER
-password: $MQTT_PASSWORD
-qos: 1
-topic: /devices/$config_systemid/controls
+# Check if sml2mqtt.yaml file exists
+if [ ! -f "$sml2mqtt_config_file" ]; then
+    bashio::log.info "Creating blank $sml2mqtt_config_file file."
+    echo "host:
+port:
+username:
+password:
+qos: 0
+topic: 
 id: sml2mqtt
-device: $config_tty
+device: 
 " > $sml2mqtt_config_file
+fi
 
+# Update the sml2mqtt configuration file
+sed -i "s#host:.*#host: $MQTT_HOST#g" "$sml2mqtt_config_file"
+sed -i "s#port:.*#port: $MQTT_PORT#g" "$sml2mqtt_config_file"
+sed -i "s#username:.*#username: $MQTT_USER#g" "$sml2mqtt_config_file"
+sed -i "s#password:.*#password: $MQTT_PASSWORD#g" "$sml2mqtt_config_file"
+sed -i "s#topic:.*#topic: /devices/$config_systemid/controls#g" "$sml2mqtt_config_file"
+sed -i "s#device:.*#device: $config_tty#g" "$sml2mqtt_config_file"
 
 # Start the sml2mqtt service
 bashio::log.info "Starting sml2mqtt..."
