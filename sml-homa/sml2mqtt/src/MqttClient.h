@@ -36,16 +36,17 @@ public:
     /**
      * set topic, and publish on change
      *
-     * @param topic[in] topic
+     * @param topic topic
      * @param payload payload
+     * @param retain whether to retain the message (default: true)
      */
-    void publishOnChange(std::string topic, std::string payload);
+    void publishOnChange(std::string topic, std::string payload, bool retain = true);
 
     /**
-     * get topic, that was set before
+     * get topic, that was set before (by publishOnChange)
      *
-     * @param[in] topic topic
-     * @param[in] default default value, if topic is not available
+     * @param topic topic
+     * @param default default value, if topic is not available
      * @return payload
      */
     std::string getTopic(std::string topic, std::string defaultValue = "") const;
