@@ -39,7 +39,7 @@ public:
      * @param topic[in] topic
      * @param payload payload
      */
-    void setTopic(std::string topic, std::string payload);
+    void publishOnChange(std::string topic, std::string payload);
 
     /**
      * get topic, that was set before
@@ -50,35 +50,16 @@ public:
      */
     std::string getTopic(std::string topic, std::string defaultValue = "") const;
 
-    /**
-     * get base topic
-     *
-     * @return base topic
-     */
-    std::string getBaseTopic() const { return m_baseTopic; }
-
-    /**
-     * get verbose mode
-     *
-     * @return true if verbose mode is enabled
-     */
-    bool isVerbose() const { return m_verbose; }
 private:
     virtual void on_connect(int rc);
-    virtual void on_publish(int mid);
     virtual void on_message(const struct mosquitto_message * message);
     virtual void on_disconnect(int /*rc*/);
-    void mqtt_loop_thread();
 
     /** qos */
     int m_qos;
 
     /** verbose mode */
     bool m_verbose;
-
-    bool m_running = false;
-
-    int m_counter = 0;
 
     /** base topic */
     std::string m_baseTopic;

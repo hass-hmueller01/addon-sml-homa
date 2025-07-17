@@ -162,15 +162,9 @@ bool SML::is_open() const
     return (m_fd > 0);
 }
 
-#define MC_SML_BUFFER_LEN 8096
-
 void SML::transport_listen()
 {
-    unsigned char buffer[MC_SML_BUFFER_LEN];
-    size_t buffer_len;
-
-    while ((buffer_len = sml_transport_read(m_fd, buffer, MC_SML_BUFFER_LEN)) > 0) {
-        usleep(10000); // wait 1ms to avoid flooding the MQTT broker
+    sml_transport_listen(m_fd, [](unsigned char * buffer, size_t buffer_len) {
         /* check if MQTT client is available */
         if (!mqttClient()) {
             return;
@@ -181,7 +175,6 @@ void SML::transport_listen()
 
         /* read OBIS data */
         for (int i = 0; i < file->messages_len; i++) {
-            usleep(1000); // wait 1ms to avoid flooding the MQTT broker
             sml_message *message = file->messages[i];
             if (*message->message_body->tag == SML_MESSAGE_GET_LIST_RESPONSE) {
                 sml_list *entry;
@@ -212,11 +205,11 @@ void SML::transport_listen()
                     /* set MQTT value based on type */
                     if (entry->value->type == SML_TYPE_OCTET_STRING) {
                         char *str;
-                        //mqttClient()->setTopic(topic.str(), sml_value_to_strhex(entry->value, &str, true));
+                        //mqttClient()->publishOnChange(topic.str(), sml_value_to_strhex(entry->value, &str, true));
                         free(str);
                     } else
                     if (entry->value->type == SML_TYPE_BOOLEAN) {
-                        //mqttClient()->setTopic(topic.str(), (entry->value->data.boolean ? "1" : "0"));
+                        //mqttClient()->publishOnChange(topic.str(), (entry->value->data.boolean ? "1" : "0"));
                     } else
                     if (((entry->value->type & SML_TYPE_FIELD) == SML_TYPE_INTEGER) ||
                                ((entry->value->type & SML_TYPE_FIELD) == SML_TYPE_UNSIGNED)) {
@@ -230,19 +223,19 @@ void SML::transport_listen()
                         if (obis.str() == "1-0:16.7.0*255") {
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                        	mqttClient()->setTopic("Current Power", valuestr.str());
+                        	mqttClient()->publishOnChange("Current Power", valuestr.str());
                         } else if (obis.str() == "1-0:1.8.0*255") {
                             value = value / 1000;
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                        	mqttClient()->setTopic("Total Energy", valuestr.str());
+                        	mqttClient()->publishOnChange("Total Energy", valuestr.str());
                         }
 
                         /* unit is optional */
                         if (entry->unit) {
                             uint8_t code = (uint8_t) * entry->unit;
                             if (units.count(code)) {
-                                //mqttClient()->setTopic(topic.str() + "/$unit", units.at(code));
+                                //mqttClient()->publishOnChange(topic.str() + "/$unit", units.at(code));
                             }
                         }
                     }
@@ -252,5 +245,5 @@ void SML::transport_listen()
 
         /* free memory */
         sml_file_free(file);
-    }
+    });
 }
