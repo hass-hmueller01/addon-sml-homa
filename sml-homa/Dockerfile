@@ -41,6 +41,6 @@ RUN \
     cd / && \
     apk del --purge build-base git cmake util-linux-dev yaml-cpp-dev && \
     rm -rf /tmp/* /var/tmp/* /usr/local/lib/pkgconfig /root/src
- 
+
 # Copy root filesystem
 COPY rootfs /
