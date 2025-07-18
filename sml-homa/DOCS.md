@@ -1,7 +1,10 @@
-# Home Assistant Add-on: SML to HomA MQTT add-on
+# Home Assistant add-on: SML to HomA MQTT
+
+This add-on uses an IR connector (e.g. IR-Kopf by [volkszaehler.org](http://wiki.volkszaehler.org/)) to read the current power and total energy from a SML (Smart Message Language) meter and creates HomA framework's MQTT messages.
 
 ## How to use
-Once installed, the addon fetches data from your SML meter and pushes it to the HomA MQTT topic `/devices/<systemID>/controls/<topic>`.
+
+Once installed, the add-on fetches data from your SML meter and pushes it to the HomA MQTT topics `/devices/<systemID>/controls/<topic>`.
 
 The following [OBIS](https://de.wikipedia.org/wiki/OBIS-Kennzahlen) messages are supported:
 | OBIS           | unit | topic         |
@@ -12,8 +15,6 @@ The following [OBIS](https://de.wikipedia.org/wiki/OBIS-Kennzahlen) messages are
 To get the data it uses the [libSML](https://github.com/volkszaehler/libsml) and the [SML2MQTT](https://github.com/hass-hmueller01/addon-sml-homa/tree/main/sml-homa/sml2mqtt) application.
 
 ## Configuration
-
-### Add-On Configuration
 
 In the configuration section, you can configure the USB/TTY device (e.g. `/dev/ttyUSB0`) or the IR devices UART serial number to detect the TTY automatically. If a TTY is set, it will use it no matter if it finds a differnent one by serial number. If you like to use the auto detect by serial number you have to remove the TTY setting.
 
