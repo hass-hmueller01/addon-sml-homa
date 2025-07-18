@@ -33,7 +33,6 @@ schema:
   mqtt_password: "str?"
   debug: "bool?"
 usb: true
-apparmor: true
 services:
   - mqtt:need
 devices:
