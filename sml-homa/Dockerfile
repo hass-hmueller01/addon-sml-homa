@@ -6,20 +6,11 @@ FROM $BUILD_FROM
 
 ENV LIBSML_VERSION="v1.1.3"
 
-# Execute during the build of the image
-# ARG TEMPIO_VERSION=2021.09.0 BUILD_ARCH
-# RUN \
-#     curl -sSLf -o /usr/bin/tempio \
-#     "https://github.com/home-assistant/tempio/releases/download/${TEMPIO_VERSION}/tempio_${BUILD_ARCH}"
-
 # Install dependencies
 RUN \
     apk update && \
     apk upgrade && \
     apk add --no-cache mosquitto-clients yaml-cpp libuuid
-    # apt-get update && \
-    # apt-get upgrade -y && \
-    # apt-get install -y build-essential git cmake libxml2-dev libmosquittopp-dev libyaml-cpp-dev mosquitto-clients yq xmlstarlet vim-tiny uuid-dev uuid-runtime && \
 
 COPY bashrc /root/.bashrc
 COPY sml2mqtt /root/src/sml2mqtt
