@@ -10,5 +10,4 @@ labels:
   org.opencontainers.image.description: "SML to HomA MQTT add-on."
   org.opencontainers.image.source: "https://github.com/hass-hmueller01/addon-sml-homa"
   org.opencontainers.image.licenses: "Apache License 2.0"
-args:
 squash: true
