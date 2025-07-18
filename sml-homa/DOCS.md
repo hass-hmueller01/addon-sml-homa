@@ -9,7 +9,7 @@ The following [OBIS](https://de.wikipedia.org/wiki/OBIS-Kennzahlen) messages are
 | 1-0:16.7.0*255 | W    | Current Power |
 | 1-0:1.8.0*255  | kWh  | Total Energy  |
 
-To get the data it uses the [libSML](https://github.com/volkszaehler/libsml) and the [SML2MQTT](https://github.com/hass-hmueller01/addon-sml-homa/sml-homa/sml2mqtt/README.md) application.
+To get the data it uses the [libSML](https://github.com/volkszaehler/libsml) and the [SML2MQTT](https://github.com/hass-hmueller01/addon-sml-homa/tree/main/sml-homa/sml2mqtt) application.
 
 ## Configuration
 
