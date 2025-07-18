@@ -6,7 +6,7 @@ description: Connect a SML (Smart Message Language) meter using the HomA MQTT fr
 url: "https://github.com/hass-hmueller01/addon-sml-homa"
 # remove the image tag if you want to use it as a local add-on
 #image: "ghcr.io/hmueller01/{arch}-addon-sml-homa" # on https://github.com
-#image: "hmueller01/homeassistant-addon-sml-homa-{arch}" # on https://hub.docker.com
+image: "hmueller01/homeassistant-addon-sml-homa-{arch}" # on https://hub.docker.com
 arch:
   - aarch64
   - amd64
