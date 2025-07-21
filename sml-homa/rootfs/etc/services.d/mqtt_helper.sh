@@ -39,10 +39,12 @@ publish_topic() {
     local message="$2"
     local retain="${3:-true}"
     local retain_flag=""
+    local errexit=false
+    local ret_val
 
-    if $retain; then
-        retain_flag="-r"
-    fi
+    [[ $retain ]] && retain_flag="-r"
+    [[ $- == *e* ]] && errexit=true
+    set +e
     while true; do
         # Publish the message to the specified topic
         mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
@@ -51,10 +53,11 @@ publish_topic() {
         if [ $ret_val -eq 0 ]; then
             break
         else
-            bashio::log.info "mosquitto_pub returned $ret_val. Retrying in 10s."
+            bashio::log.error "publish_topic(): mosquitto_pub returned $ret_val. Retrying in 10s."
             sleep 10
         fi
     done
+    [[ $errexit ]] && set -e
 }
 
 # Publish a Home Assistant autoconfiguration message for a sensor
@@ -71,9 +74,8 @@ homeassistant_config() {
     local name="${1#_}"  # Remove leading underscore
     local topic="${2#_}"
     local class="${3#_}"
-    local unit="${4:-}" # Default to empty if not provided, remove leading underscore does not work here, do later
+    local unit="${4:-}" && unit="${unit#_}" # Default to empty if not provided, remove leading underscore
     local template="${5:-}" && template="${template#_}"
-    unit="${unit#_}"  # Remove leading underscore
 
     # Required environment variables: config_systemid, config_area
     local object_id="${config_systemid}-${topic// /-}"
