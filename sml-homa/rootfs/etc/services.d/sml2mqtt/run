@@ -39,9 +39,9 @@ for usb_id in $usb_ids; do
     vendor="${usb_id:0:4}"
     product="${usb_id:5:4}"
     devpath=`dmesg | grep "idVendor=$vendor, idProduct=$product" | tail -1 | sed "s/.* usb \(.*\): .*/\1/"`
-    serial=$(dmesg | grep "usb $devpath: SerialNumber:" | sed "s/.* SerialNumber: //")
-    product=$(dmesg | grep "usb $devpath: Product:" | sed "s/.* Product: //")
-    device="/dev/"$(dmesg | grep -E "usb $devpath: .* attached to" | sed "s/.* attached to //")
+    serial=$(dmesg | grep "usb $devpath: SerialNumber:" | tail -1 | sed "s/.* SerialNumber: //")
+    product=$(dmesg | grep "usb $devpath: Product:" | tail -1 | sed "s/.* Product: //")
+    device="/dev/"$(dmesg | grep -E "usb $devpath: .* attached to" | tail -1 | sed "s/.* attached to //")
     bashio::log.info "Found UART device: $usb_id - $product, S/N $serial at $device"
     if [[ -z "$config_tty" && -n "$config_serial" && "$serial" == "$config_serial" ]]; then
         config_tty="$device"
