@@ -37,14 +37,23 @@ publish_topic() {
     local message="$2"
     local retain="${3:-true}"
 
-    # Publish the message to the specified topic
-    if $retain; then
-        mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
-            -t "$topic" -m "$message" -r
-    else
-        mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
-            -t "$topic" -m "$message"
-    fi
+    while true; do
+        # Publish the message to the specified topic
+        if $retain; then
+            mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+                -t "$topic" -m "$message" -r
+        else
+            mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+                -t "$topic" -m "$message"
+        fi
+        ret_val=$?
+        if [ $ret_val -eq 0 ]; then
+            break
+        else
+            bashio::log.info "mosquitto_pub returned $ret_val. Retrying in 10s."
+            sleep 10
+        fi
+    done
 }
 
 # Publish a Home Assistant autoconfiguration message for a sensor
