@@ -36,16 +36,15 @@ publish_topic() {
     local topic="$1"
     local message="$2"
     local retain="${3:-true}"
+    local retain_flag=""
 
+    if $retain; then
+        retain_flag="-r"
+    fi
     while true; do
         # Publish the message to the specified topic
-        if $retain; then
-            mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
-                -t "$topic" -m "$message" -r
-        else
-            mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
-                -t "$topic" -m "$message"
-        fi
+        mosquitto_pub -h "$MQTT_HOST" -p "$MQTT_PORT" -u "$MQTT_USER" -P "$MQTT_PASSWORD" \
+            -t "$topic" -m "$message" $retain_flag
         ret_val=$?
         if [ $ret_val -eq 0 ]; then
             break
