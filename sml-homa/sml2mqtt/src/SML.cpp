@@ -170,6 +170,12 @@ void SML::transport_listen()
             return;
         }
 
+        if (buffer == nullptr || buffer_len < 16) {
+            std::cerr << "Transport error or device disconnected. Sleeping 1s ..." << std::endl;
+            sleep(1); // reduce CPU usage
+            return;
+        }
+
         /* the buffer contains the whole message and strip transport escape sequences */
         sml_file *file = sml_file_parse(buffer + 8, buffer_len - 16);
 
