@@ -6,6 +6,7 @@
 # Holger Mueller - MIT License 2025
 #
 # v001 2025-07-17 hmueller01 Initial version
+# v002 2025-07-21 hmueller01 Added mosquitto_pub retry logic, added homeassistant_config output
 # ==============================================================================
 
 # Create HomA topic string with up to 3 levels of hierarchy
@@ -17,6 +18,7 @@ get_homa_topic() {
     local subsection="${2:-}"
     local subsubsection="${3:-}"
     local base="/devices/$config_systemid"
+
     if [[ -n "$subsection" && -n "$subsubsection" ]]; then
         echo "$base/$section/$subsection/$subsubsection"
     elif [[ -n "$subsection" ]]; then
@@ -69,10 +71,9 @@ homeassistant_config() {
     local name="${1#_}"  # Remove leading underscore
     local topic="${2#_}"
     local class="${3#_}"
-    local unit="${4:-}"  # Default to empty if not provided, remove leading underscore does not work here, do later
-    local template="${5:-}"
+    local unit="${4:-}" # Default to empty if not provided, remove leading underscore does not work here, do later
+    local template="${5:-}" && template="${template#_}"
     unit="${unit#_}"  # Remove leading underscore
-    template="${template#_}"
 
     # Required environment variables: config_systemid, config_area
     local object_id="${config_systemid}-${topic// /-}"
@@ -137,4 +138,5 @@ homeassistant_config() {
 
     # Publish to MQTT
     publish_topic "$ha_topic" "$payload" true
+    bashio::log.info "Published Home Assistant config for $name to $ha_topic"
 }
