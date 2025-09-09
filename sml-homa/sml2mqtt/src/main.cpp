@@ -31,6 +31,9 @@
 #endif
 
 /* C++ includes */
+#include <mosquittopp.h>
+#include <yaml-cpp/yaml.h>
+
 #include <array>
 #include <atomic>
 #include <chrono>
@@ -38,28 +41,24 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
-#include <mosquittopp.h>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
-#include <yaml-cpp/yaml.h>
 
 /* project internal includes */
-#include "SML.h"
 #include "MqttClient.h"
+#include "SML.h"
 
 /** abort the main loop */
 std::atomic<bool> abortLoop;
 
 /** handle SIGTERM */
-void signalHandler(int /*signum*/)
-{
+void signalHandler(int /*signum*/) {
     abortLoop = true;
 }
 
 /** main function */
-int main(int argc, char ** argv)
-{
+int main(int argc, char** argv) {
     /* default parameters */
     std::string host = "localhost";
     int port = 1883;
@@ -148,16 +147,16 @@ int main(int argc, char ** argv)
             break;
         default:
             std::cout << "Usage: sml2mqtt [-v] [-c config.yaml] [-h host] [-p port] [-q qos] [-t topic] [-i id] [-u username] [-P password] [-d device]" << std::endl
-                << "-v: Be verbose, use this first to get all verbose messages" << std::endl
-                << "-c: Use YAML config file <config.yaml> (can be combined with other options)" << std::endl
-                << "-h: hostname of broker" << std::endl
-                << "-p: port of broker" << std::endl
-                << "-q: QOS of messages" << std::endl
-                << "-t: MQTT topic to publish to (e.g. /devices/123456-energy/controls)" << std::endl
-                << "-i: ID of broker client (e.g. sml2mqtt)" << std::endl
-                << "-u: username" << std::endl
-                << "-p: password" << std::endl
-                << "-d: device to read sml messages from (e.g. /dev/vzir0)" << std::endl;
+                      << "-v: Be verbose, use this first to get all verbose messages" << std::endl
+                      << "-c: Use YAML config file <config.yaml> (can be combined with other options)" << std::endl
+                      << "-h: hostname of broker" << std::endl
+                      << "-p: port of broker" << std::endl
+                      << "-q: QOS of messages" << std::endl
+                      << "-t: MQTT topic to publish to (e.g. /devices/123456-energy/controls)" << std::endl
+                      << "-i: ID of broker client (e.g. sml2mqtt)" << std::endl
+                      << "-u: username" << std::endl
+                      << "-p: password" << std::endl
+                      << "-d: device to read sml messages from (e.g. /dev/vzir0)" << std::endl;
             return EXIT_FAILURE;
         }
     }
@@ -175,7 +174,6 @@ int main(int argc, char ** argv)
     /* start MqttClient */
     mqttClient() = new MqttClient(host.c_str(), port, qos, topic.c_str(), id.c_str(), username.c_str(), password.c_str(), verbose);
 
-
     // check if MQTT client is available
     if (!mqttClient()) {
         return EXIT_FAILURE;
@@ -184,14 +182,14 @@ int main(int argc, char ** argv)
     // setup HomA meta data
     /*
         {'obis': '1-0:16.7.0*255', 'scale': 1, 'unit': ' W', 'topic': 'Current Power'},
-    	{'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
+        {'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
     */
-	mqttClient()->publishOnChange("Current Power/meta/type", "text");
-	mqttClient()->publishOnChange("Current Power/meta/unit", " W");
-	mqttClient()->publishOnChange("Current Power/meta/order", "1");
-	mqttClient()->publishOnChange("Total Energy/meta/type", "text");
-	mqttClient()->publishOnChange("Total Energy/meta/unit", " kWh");
-	mqttClient()->publishOnChange("Total Energy/meta/order", "2");
+    mqttClient()->publishOnChange("Current Power/meta/type", "text");
+    mqttClient()->publishOnChange("Current Power/meta/unit", " W");
+    mqttClient()->publishOnChange("Current Power/meta/order", "1");
+    mqttClient()->publishOnChange("Total Energy/meta/type", "text");
+    mqttClient()->publishOnChange("Total Energy/meta/unit", " kWh");
+    mqttClient()->publishOnChange("Total Energy/meta/order", "2");
 
     /* init all channels */
     SML sml(device);
@@ -205,16 +203,16 @@ int main(int argc, char ** argv)
 #endif
 
     /* start publish loop */
-//     while (!abortLoop) {
-// #ifdef WITH_SYSTEMD
-//         /* systemd notify */
-//         sd_notify(0, "WATCHDOG=1");
-// #endif
+    //     while (!abortLoop) {
+    // #ifdef WITH_SYSTEMD
+    //         /* systemd notify */
+    //         sd_notify(0, "WATCHDOG=1");
+    // #endif
 
-//         /* read channels and publish via MQTT */
-//         // listen on the serial device, this call is blocking.
-//         sml.transport_listen();
-//     }
+    //         /* read channels and publish via MQTT */
+    //         // listen on the serial device, this call is blocking.
+    //         sml.transport_listen();
+    //     }
 
     // listen on the serial device read channels and publish via MQTT, this call is blocking
     sml.transport_listen();
