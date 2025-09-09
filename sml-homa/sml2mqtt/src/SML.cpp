@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 
 /* C++ includes */
 #include <cmath>
@@ -41,11 +42,15 @@
 
 /* SML library */
 #include <sml/sml_file.h>
-#include <sml/sml_transport.h>
+//#include <sml/sml_transport.h>
 #include <sml/sml_value.h>
 
 /* project internal includes */
 #include "MqttClient.h"
+
+#define MC_SML_BUFFER_LEN 8096
+
+static const unsigned char esc_seq[] = {0x1b, 0x1b, 0x1b, 0x1b};
 
 /** units */
 static const std::map<uint8_t, std::string> units = {
@@ -162,8 +167,105 @@ bool SML::is_open() const
     return (m_fd > 0);
 }
 
+size_t sml_read(int fd, fd_set *set, unsigned char *buffer, size_t len) {
+
+    struct timeval timeout = {2, 0}; // 2 seconds timeout
+    ssize_t r = 0;
+    size_t tr = 0;
+
+    while (tr < len) {
+        // select(fd + 1, set, 0, 0, 0);  // original code
+        int sel = select(fd + 1, set, 0, 0, 0);
+        // int sel = select(fd + 1, set, 0, 0, &timeout);
+        if (sel <= 0) {
+            std::cerr << "SML: sml_read(): select error " << sel << ", errno: " << errno << " - " << strerror(errno) << std::endl;
+            return 0;  // timeout or error
+        }
+        if (FD_ISSET(fd, set)) {
+            r = read(fd, &(buffer[tr]), len - tr);
+            if (r <= 0) {
+                std::cerr << "SML: sml_read(): read error " << r << ", errno: " << errno << " - " << strerror(errno) << std::endl;
+                // if (errno == EINTR || errno == EAGAIN)
+                //     continue; // should be ignored
+                return 0;
+            }
+            tr += r;
+        }
+    }
+    return tr;
+}
+
+size_t sml_transport_read(int fd, unsigned char *buffer, size_t max_len) {
+
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(fd, &readfds);
+
+    unsigned char buf[max_len];
+    memset(buf, 0, max_len);
+    unsigned int len = 0;
+
+    if (max_len < 8) {
+        // prevent buffer overflow
+        std::cerr << "SML: sml_transport_read(): error: passed buffer too small" << std::endl;
+        return 0;
+    }
+
+    while (len < 8) {
+        if (sml_read(fd, &readfds, &(buf[len]), 1) == 0) {
+            return 0;
+        }
+
+        if ((buf[len] == 0x1b && len < 4) || (buf[len] == 0x01 && len >= 4)) {
+            len++;
+        } else {
+            len = 0;
+        }
+    }
+
+    // found start sequence
+    while ((len + 8) < max_len) {
+        if (sml_read(fd, &readfds, &(buf[len]), 4) == 0) {
+            return 0;
+        }
+
+        if (memcmp(&buf[len], esc_seq, 4) == 0) {
+            // found esc sequence
+            len += 4;
+            if (sml_read(fd, &readfds, &(buf[len]), 4) == 0) {
+                return 0;
+            }
+
+            if (buf[len] == 0x1a) {
+                // found end sequence
+                len += 4;
+                memcpy(buffer, &(buf[0]), len);
+                return len;
+            } else {
+                // don't read other escaped sequences yet
+                std::cerr << "SML: sml_transport_read(): error: unrecognized sequence" << std::endl;
+                return 0;
+            }
+        }
+        len += 4;
+    }
+
+    return 0;
+}
+
+void sml_transport_listen(int fd, void (*sml_transport_receiver)(unsigned char *buffer,
+                                                                 size_t buffer_len)) {
+    unsigned char buffer[MC_SML_BUFFER_LEN];
+    size_t bytes;
+
+    while ((bytes = sml_transport_read(fd, buffer, MC_SML_BUFFER_LEN)) > 0) {
+        sml_transport_receiver(buffer, bytes);
+    }
+}
+
 void SML::transport_listen()
 {
+    std::cerr << "SML::transport_listen() started" << std::endl;  // TODO: remove debug output
     sml_transport_listen(m_fd, [](unsigned char * buffer, size_t buffer_len) {
         /* check if MQTT client is available */
         if (!mqttClient()) {
@@ -224,17 +326,17 @@ void SML::transport_listen()
                         value = value * pow(10, scaler);
                         /*
                             {'obis': '1-0:16.7.0*255', 'scale': 1, 'unit': ' W', 'topic': 'Current Power'},
-                        	{'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
+                            {'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
                         */
                         if (obis.str() == "1-0:16.7.0*255") {
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                        	mqttClient()->publishOnChange("Current Power", valuestr.str());
+                            mqttClient()->publishOnChange("Current Power", valuestr.str());
                         } else if (obis.str() == "1-0:1.8.0*255") {
                             value = value / 1000;
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                        	mqttClient()->publishOnChange("Total Energy", valuestr.str());
+                            mqttClient()->publishOnChange("Total Energy", valuestr.str());
                         }
 
                         /* unit is optional */
@@ -252,4 +354,5 @@ void SML::transport_listen()
         /* free memory */
         sml_file_free(file);
     });
+    std::cerr << "SML::transport_listen() ended" << std::endl;  // TODO: remove debug output
 }
