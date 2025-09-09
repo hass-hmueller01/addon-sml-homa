@@ -205,16 +205,19 @@ int main(int argc, char ** argv)
 #endif
 
     /* start publish loop */
-    while (!abortLoop) {
-#ifdef WITH_SYSTEMD
-        /* systemd notify */
-        sd_notify(0, "WATCHDOG=1");
-#endif
+//     while (!abortLoop) {
+// #ifdef WITH_SYSTEMD
+//         /* systemd notify */
+//         sd_notify(0, "WATCHDOG=1");
+// #endif
 
-        /* read channels and publish via MQTT */
-        // listen on the serial device, this call is blocking.
-        sml.transport_listen();
-    }
+//         /* read channels and publish via MQTT */
+//         // listen on the serial device, this call is blocking.
+//         sml.transport_listen();
+//     }
+
+    // listen on the serial device read channels and publish via MQTT, this call is blocking
+    sml.transport_listen();
 
     /* delete resources */
     delete mqttClient();
