@@ -26,16 +26,15 @@
 /* C++ includes */
 #include <string>
 
-class SML
-{
-public:
+class SML {
+   public:
     SML(std::string device);
     virtual ~SML();
 
     bool is_open() const;
     void transport_listen();
 
-private:
+   private:
     std::string m_device;
     int m_fd;
 };

@@ -29,14 +29,15 @@
 #include <iostream>
 #include <string>
 
-MqttClient::MqttClient(const char * host, int port, int qos, const char * baseTopic, const char * id, const char * username, const char * password, bool verbose) :
-    mosqpp::mosquittopp(id),
-    m_verbose(verbose),
-    m_qos(qos),
-    m_baseTopic(baseTopic),
-    m_topicPayloads(),
-    m_topicPayloadsMutex()
-{
+MqttClient::MqttClient(const char *host, int port,
+                       int qos, const char *baseTopic, const char *id,
+                       const char *username, const char *password,
+                       bool verbose) : mosqpp::mosquittopp(id),
+                                       m_verbose(verbose),
+                                       m_qos(qos),
+                                       m_baseTopic(baseTopic),
+                                       m_topicPayloads(),
+                                       m_topicPayloadsMutex() {
     /* set last will */
     /*
     std::string topic = m_baseTopic + "/$state";
@@ -62,8 +63,7 @@ MqttClient::MqttClient(const char * host, int port, int qos, const char * baseTo
     }
 }
 
-MqttClient::~MqttClient()
-{
+MqttClient::~MqttClient() {
     /* disconnect */
     /*
     std::string topic = m_baseTopic + "/$state";
@@ -80,8 +80,7 @@ MqttClient::~MqttClient()
     }
 }
 
-void MqttClient::publishOnChange(std::string topic, std::string payload, bool retain)
-{
+void MqttClient::publishOnChange(std::string topic, std::string payload, bool retain) {
     std::lock_guard<std::mutex> lock(m_topicPayloadsMutex);
 
     /* check if value has changed */
@@ -103,19 +102,17 @@ void MqttClient::publishOnChange(std::string topic, std::string payload, bool re
     }
 }
 
-std::string MqttClient::getTopic(std::string topic, std::string defaultValue) const
-{
+std::string MqttClient::getTopic(std::string topic, std::string defaultValue) const {
     std::lock_guard<std::mutex> lock(m_topicPayloadsMutex);
 
     try {
         return m_topicPayloads.at(topic);
-    } catch (std::out_of_range & e) {
+    } catch (std::out_of_range &e) {
         return defaultValue;
     }
 }
 
-void MqttClient::on_connect(int rc)
-{
+void MqttClient::on_connect(int rc) {
     std::string topic;
     std::string payload;
 
@@ -149,7 +146,7 @@ void MqttClient::on_connect(int rc)
         */
 
         /* publish $state = ready */
-    	/* not used
+        /* not used
         topic = m_baseTopic + "/$state";
         payload = "ready";
         if (publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, true) != MOSQ_ERR_SUCCESS) {
@@ -159,21 +156,19 @@ void MqttClient::on_connect(int rc)
     }
 }
 
-void MqttClient::on_message(const struct mosquitto_message * message)
-{
+void MqttClient::on_message(const struct mosquitto_message *message) {
     std::lock_guard<std::mutex> lock(m_topicPayloadsMutex);
 
     /* remove basetopic from topic */
     std::string topic = message->topic;
-    topic.erase(0, m_baseTopic.length()+1);
+    topic.erase(0, m_baseTopic.length() + 1);
 
     /* save it */
     std::string payload(static_cast<const char *>(message->payload), message->payloadlen);
     m_topicPayloads[topic] = payload;
 }
 
-void MqttClient::on_disconnect(int rc)
-{
+void MqttClient::on_disconnect(int rc) {
     if (rc != MOSQ_ERR_SUCCESS) {
         std::cerr << "MqttClient::on_disconnect: Unexpected disconnect from broker. Reason code: " << rc << std::endl;
     } else if (m_verbose) {
@@ -181,8 +176,7 @@ void MqttClient::on_disconnect(int rc)
     }
 }
 
-MqttClient * & mqttClient()
-{
-    static MqttClient * mqttClient = nullptr;
+MqttClient *&mqttClient() {
+    static MqttClient *mqttClient = nullptr;
     return mqttClient;
 }

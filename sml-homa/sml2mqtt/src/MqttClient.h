@@ -22,15 +22,15 @@
 #pragma once
 
 /* C++ includes */
+#include <mosquittopp.h>
+
 #include <map>
 #include <mutex>
 #include <string>
-#include <mosquittopp.h>
 
-class MqttClient : private mosqpp::mosquittopp
-{
-public:
-    MqttClient(const char * host, int port, int qos, const char * baseTopic, const char * id, const char * username, const char * password, bool verbose = false);
+class MqttClient : private mosqpp::mosquittopp {
+   public:
+    MqttClient(const char* host, int port, int qos, const char* baseTopic, const char* id, const char* username, const char* password, bool verbose = false);
     virtual ~MqttClient();
 
     /**
@@ -51,9 +51,9 @@ public:
      */
     std::string getTopic(std::string topic, std::string defaultValue = "") const;
 
-private:
+   private:
     virtual void on_connect(int rc);
-    virtual void on_message(const struct mosquitto_message * message);
+    virtual void on_message(const struct mosquitto_message* message);
     virtual void on_disconnect(int /*rc*/);
 
     /** qos */
@@ -72,6 +72,5 @@ private:
     mutable std::mutex m_topicPayloadsMutex;
 };
 
-
 /** singleton */
-MqttClient * & mqttClient();
+MqttClient*& mqttClient();
