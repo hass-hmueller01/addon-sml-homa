@@ -6,13 +6,14 @@ FROM $BUILD_FROM
 
 ENV LIBSML_VERSION="v1.1.3"
 
+RUN echo "alias l='ls --color=auto -alF'" >> /root/.bashrc
+
 # Install dependencies
 RUN \
     apk update && \
     apk upgrade && \
     apk add --no-cache mosquitto-clients yaml-cpp libuuid
 
-COPY bashrc /root/.bashrc
 COPY sml2mqtt /root/src/sml2mqtt
 
 # Compile and install libsml and sml2mqtt
