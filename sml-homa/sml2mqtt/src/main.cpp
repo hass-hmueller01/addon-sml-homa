@@ -191,31 +191,28 @@ int main(int argc, char** argv) {
     mqttClient()->publishOnChange("Total Energy/meta/unit", " kWh");
     mqttClient()->publishOnChange("Total Energy/meta/order", "2");
 
-    /* init all channels */
-    SML sml(device);
-    if (!sml.is_open()) {
-        return -1;
-    }
-
 #ifdef WITH_SYSTEMD
     /* systemd notify */
     sd_notify(0, "READY=1");
 #endif
 
     /* start publish loop */
-    //     while (!abortLoop) {
-    // #ifdef WITH_SYSTEMD
-    //         /* systemd notify */
-    //         sd_notify(0, "WATCHDOG=1");
-    // #endif
+    while (!abortLoop) {
+#ifdef WITH_SYSTEMD
+        /* systemd notify */
+        sd_notify(0, "WATCHDOG=1");
+#endif
+        // init serial channel
+        SML sml(device);
+        if (!sml.is_open()) {
+            return EXIT_FAILURE;
+        }
 
-    //         /* read channels and publish via MQTT */
-    //         // listen on the serial device, this call is blocking.
-    //         sml.transport_listen();
-    //     }
+        // listen on the serial device read channels and publish via MQTT, this call is blocking
+        sml.transport_listen();
 
-    // listen on the serial device read channels and publish via MQTT, this call is blocking
-    sml.transport_listen();
+        delete &sml;
+    }
 
     /* delete resources */
     delete mqttClient();
