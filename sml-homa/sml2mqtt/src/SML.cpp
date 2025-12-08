@@ -257,7 +257,6 @@ void sml_transport_listen(int fd, void (*sml_transport_receiver)(unsigned char *
 }
 
 void SML::transport_listen() {
-    std::cerr << "SML::transport_listen() started" << std::endl;  // TODO: remove debug output
     sml_transport_listen(m_fd, [](unsigned char *buffer, size_t buffer_len) {
         /* check if MQTT client is available */
         if (!mqttClient()) {
@@ -344,5 +343,4 @@ void SML::transport_listen() {
         /* free memory */
         sml_file_free(file);
     });
-    std::cerr << "SML::transport_listen() ended" << std::endl;  // TODO: remove debug output
 }
