@@ -210,6 +210,10 @@ int main(int argc, char** argv) {
 
         // listen on the serial device read channels and publish via MQTT, this call is blocking
         sml.transport_listen();
+        if (!abortLoop) {
+            std::cerr << "SML::transport_listen() ended unexpectedly, retrying in 5s ..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(5));
+        }
 
         delete &sml;
     }

@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/add-ons/configuration#add-on-config
 name: SML to HomA MQTT
-version: 0.1.5
+version: 1.0.0
 slug: sml-homa
 description: Connect a SML (Smart Message Language) meter using the HomA MQTT framework
 url: https://github.com/hass-hmueller01/addon-sml-homa
@@ -10,9 +10,6 @@ image: "hmueller01/homeassistant-addon-sml-homa-{arch}" # on https://hub.docker.
 arch:
   - aarch64
   - amd64
-  - armhf
-  - armv7
-  - i386
 init: false
 options:
   device_name: "Energie"
