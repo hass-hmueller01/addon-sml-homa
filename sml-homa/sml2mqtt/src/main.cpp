@@ -215,8 +215,6 @@ int main(int argc, char** argv) {
             std::cerr << "main: sml.transport_listen() ended unexpectedly, retrying in 5s ..." << std::endl;
             std::this_thread::sleep_for(std::chrono::seconds(5));
         }
-
-        delete &sml;
     }
 
     /* delete resources */
