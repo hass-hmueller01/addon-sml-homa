@@ -13,10 +13,10 @@ declare config_area
 declare sml2mqtt_config_file
 
 # Fetch MQTT settings
-source /etc/services.d/get_mqtt_settings.sh
+source get_mqtt_settings.sh
 
 # Import helper functions
-source /etc/services.d/mqtt_helper.sh
+source mqtt_helper.sh
 
 # Get configuration options from user
 config_tty=$(bashio::config 'tty') && [[ "$config_tty" == "null" ]] && config_tty=""
@@ -75,6 +75,9 @@ sed -i "s#password:.*#password: $MQTT_PASSWORD#g" "$sml2mqtt_config_file"
 sed -i "s#topic:.*#topic: /devices/$config_systemid/controls#g" "$sml2mqtt_config_file"
 sed -i "s#device:.*#device: $config_tty#g" "$sml2mqtt_config_file"
 
+extra_param=""
+bashio::config.true 'debug' && extra_param="-v"
+
 # Start the sml2mqtt service
 bashio::log.info "Starting sml2mqtt..."
-exec sml2mqtt -c "$sml2mqtt_config_file"
+exec sml2mqtt -c "$sml2mqtt_config_file" $extra_param
