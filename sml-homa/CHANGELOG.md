@@ -7,8 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-01-20
 ### Changed
 - Updated log output of sml2mqtt
+- Added "-v" to sml2mqtt if debug enabled
+- Using https://github.com/hass-hmueller01/hass-addon-helper.git
+- Fixed crash in main.cpp (illegal delete of stack pointer)
 
 ## [1.0.0] - 2025-12-08
 - Removed armhf, armv7, i386 architectures as removed in home-assistant/builder 2025.11.0
