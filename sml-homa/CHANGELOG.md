@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-01-21
+## Fixed
+- fatal: cannot change to '/usr/local/src': No such file or directory
+
 ## [1.1.0] - 2026-01-20
 ### Changed
 - Updated log output of sml2mqtt
