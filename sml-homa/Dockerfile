@@ -12,6 +12,7 @@ RUN \
     apk update && \
     apk upgrade && \
     apk add --no-cache mosquitto-clients yaml-cpp libuuid git && \
+    mkdir -p /usr/local/src && \
     git -C /usr/local/src clone --depth 1 --branch $LIBSML_VERSION https://github.com/volkszaehler/libsml.git && \
     git -C /usr/local/src clone --depth 1 --branch main https://github.com/hass-hmueller01/hass-addon-helper.git
 
