@@ -183,13 +183,17 @@ int main(int argc, char** argv) {
     /*
         {'obis': '1-0:16.7.0*255', 'scale': 1, 'unit': ' W', 'topic': 'Current Power'},
         {'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
+        {'obis': '1-0:2.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy Feed-in'}
     */
-    mqttClient()->publishOnChange("Current Power/meta/type", "text");
-    mqttClient()->publishOnChange("Current Power/meta/unit", " W");
-    mqttClient()->publishOnChange("Current Power/meta/order", "1");
-    mqttClient()->publishOnChange("Total Energy/meta/type", "text");
-    mqttClient()->publishOnChange("Total Energy/meta/unit", " kWh");
-    mqttClient()->publishOnChange("Total Energy/meta/order", "2");
+    mqttClient()->publishOnChange(TOPIC_POWER "/meta/type", "text");
+    mqttClient()->publishOnChange(TOPIC_POWER "/meta/unit", " W");
+    mqttClient()->publishOnChange(TOPIC_POWER "/meta/order", "1");
+    mqttClient()->publishOnChange(TOPIC_ENERGY "/meta/type", "text");
+    mqttClient()->publishOnChange(TOPIC_ENERGY "/meta/unit", " kWh");
+    mqttClient()->publishOnChange(TOPIC_ENERGY "/meta/order", "2");
+    mqttClient()->publishOnChange(TOPIC_FEED_IN "/meta/type", "text");
+    mqttClient()->publishOnChange(TOPIC_FEED_IN "/meta/unit", " kWh");
+    mqttClient()->publishOnChange(TOPIC_FEED_IN "/meta/order", "2");
 
 #ifdef WITH_SYSTEMD
     /* systemd notify */

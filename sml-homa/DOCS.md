@@ -7,10 +7,11 @@ This add-on uses an IR connector (e.g. IR-Kopf by [volkszaehler.org](http://wiki
 Once installed, the add-on fetches data from your SML meter and pushes it to the HomA MQTT topics `/devices/<systemID>/controls/<topic>`.
 
 The following [OBIS](https://de.wikipedia.org/wiki/OBIS-Kennzahlen) messages are supported:
-| OBIS           | unit | topic         |
-| :------------- | :--- | :------------ |
-| 1-0:16.7.0*255 | W    | Current Power |
-| 1-0:1.8.0*255  | kWh  | Total Energy  |
+| OBIS           | unit | topic                |
+| :------------- | :--- | :------------------- |
+| 1-0:16.7.0*255 | W    | Current Power        |
+| 1-0:1.8.0*255  | kWh  | Total Energy         |
+| 1-0:2.8.0*255  | kWh  | Total Energy Feed-in |
 
 To get the data it uses the [libSML](https://github.com/volkszaehler/libsml) and the [SML2MQTT](https://github.com/hass-hmueller01/addon-sml-homa/tree/main/sml-homa/sml2mqtt) application.
 
@@ -25,6 +26,8 @@ INFO: Found UART device: 10c4:ea60 - CP2104 USB to UART Bridge Controller, S/N 1
 ```
 
 Here you can copy paste the serial number (remember to remove the TTY device). That way the add-on will find the correct device at startup no matter what `/dev/ttyUSBx` it gets.
+
+As an alternative you can look in `/dev/serial/by-id` and use the device found here e.g. `/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_12345678-if00-port0`.
 
 The add-on supports the internal (Home Assistant) or an external MQTT broker. To configure the external MQTT broker you have to activate the _"Show unused optional configuration options"_.
 

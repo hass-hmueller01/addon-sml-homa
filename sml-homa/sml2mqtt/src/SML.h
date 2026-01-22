@@ -26,6 +26,10 @@
 /* C++ includes */
 #include <string>
 
+#define TOPIC_POWER "Current Power"
+#define TOPIC_ENERGY "Total Energy"
+#define TOPIC_FEED_IN "Total Energy Feed-in"
+
 class SML {
    public:
     SML(std::string device);

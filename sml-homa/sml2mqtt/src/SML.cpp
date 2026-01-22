@@ -39,6 +39,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <vector>
 
 /* SML library */
 #include <sml/sml_file.h>
@@ -194,8 +195,8 @@ size_t sml_transport_read(int fd, unsigned char *buffer, size_t max_len) {
     FD_ZERO(&readfds);
     FD_SET(fd, &readfds);
 
-    unsigned char buf[max_len];
-    memset(buf, 0, max_len);
+    std::vector<unsigned char> buf(max_len);
+    memset(buf.data(), 0, max_len);
     unsigned int len = 0;
 
     if (max_len < 8) {
@@ -316,16 +317,22 @@ void SML::transport_listen() {
                         /*
                             {'obis': '1-0:16.7.0*255', 'scale': 1, 'unit': ' W', 'topic': 'Current Power'},
                             {'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
+                            {'obis': '1-0:2.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy Feed-in'}
                         */
                         if (obis.str() == "1-0:16.7.0*255") {
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                            mqttClient()->publishOnChange("Current Power", valuestr.str());
+                            mqttClient()->publishOnChange(TOPIC_POWER, valuestr.str());
                         } else if (obis.str() == "1-0:1.8.0*255") {
                             value = value / 1000;
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                            mqttClient()->publishOnChange("Total Energy", valuestr.str());
+                            mqttClient()->publishOnChange(TOPIC_ENERGY, valuestr.str());
+                        } else if (obis.str() == "1-0:2.8.0*255") {
+                            value = value / 1000;
+                            std::ostringstream valuestr;
+                            valuestr << std::fixed << std::setprecision(1) << value;
+                            mqttClient()->publishOnChange(TOPIC_FEED_IN, valuestr.str());
                         }
 
                         /* unit is optional */
