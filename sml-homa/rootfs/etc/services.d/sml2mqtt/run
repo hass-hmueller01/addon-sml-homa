@@ -66,6 +66,7 @@ manufacturer="volkszaehler.org"
 sw_version=$(bashio::addon.version)
 homeassistant_config "Strom Leistung" "Current Power" "power" "W"
 homeassistant_config "Strom Energie" "Total Energy" "energy" "kWh"
+homeassistant_config "Strom Energie eingespeist" "Total Energy Feed-in" "energy" "kWh"
 
 # Update the sml2mqtt configuration file
 sed -i "s#host:.*#host: $MQTT_HOST#g" "$sml2mqtt_config_file"

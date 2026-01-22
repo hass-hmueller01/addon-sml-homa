@@ -316,16 +316,22 @@ void SML::transport_listen() {
                         /*
                             {'obis': '1-0:16.7.0*255', 'scale': 1, 'unit': ' W', 'topic': 'Current Power'},
                             {'obis': '1-0:1.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy'}
+                            {'obis': '1-0:2.8.0*255', 'scale': 1000, 'unit': ' kWh', 'topic': 'Total Energy Feed-in'}
                         */
                         if (obis.str() == "1-0:16.7.0*255") {
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                            mqttClient()->publishOnChange("Current Power", valuestr.str());
+                            mqttClient()->publishOnChange(TOPIC_POWER, valuestr.str());
                         } else if (obis.str() == "1-0:1.8.0*255") {
                             value = value / 1000;
                             std::ostringstream valuestr;
                             valuestr << std::fixed << std::setprecision(1) << value;
-                            mqttClient()->publishOnChange("Total Energy", valuestr.str());
+                            mqttClient()->publishOnChange(TOPIC_ENERGY, valuestr.str());
+                        } else if (obis.str() == "1-0:2.8.0*255") {
+                            value = value / 1000;
+                            std::ostringstream valuestr;
+                            valuestr << std::fixed << std::setprecision(1) << value;
+                            mqttClient()->publishOnChange(TOPIC_FEED_IN, valuestr.str());
                         }
 
                         /* unit is optional */

@@ -7,9 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- OBIS 2.8.0 messages (Total Energy Feed-in)
 
 ## [1.1.1] - 2026-01-21
-## Fixed
+### Fixed
 - fatal: cannot change to '/usr/local/src': No such file or directory
 
 ## [1.1.0] - 2026-01-20
