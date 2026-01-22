@@ -27,6 +27,8 @@ INFO: Found UART device: 10c4:ea60 - CP2104 USB to UART Bridge Controller, S/N 1
 
 Here you can copy paste the serial number (remember to remove the TTY device). That way the add-on will find the correct device at startup no matter what `/dev/ttyUSBx` it gets.
 
+As an alternative you can look in `/dev/serial/by-id` and use the device found here e.g. `/dev/serial/by-id/usb-Silicon_Labs_CP2104_USB_to_UART_Bridge_Controller_12345678-if00-port0`.
+
 The add-on supports the internal (Home Assistant) or an external MQTT broker. To configure the external MQTT broker you have to activate the _"Show unused optional configuration options"_.
 
 You can modify the topic's `<systemID>` by setting _"HomA System ID"_.
