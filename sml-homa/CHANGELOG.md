@@ -7,8 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.2.0] - 2026-01-22
 ### Added
 - OBIS 2.8.0 messages (Total Energy Feed-in)
+### Fixed
+- Removed "warning: variable length arrays in C++" in SML.cpp by using `std::vector<unsigned char> buf(max_len)`
 
 ## [1.1.1] - 2026-01-21
 ### Fixed
