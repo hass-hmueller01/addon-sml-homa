@@ -39,6 +39,7 @@
 #include <iostream>
 #include <map>
 #include <sstream>
+#include <vector>
 
 /* SML library */
 #include <sml/sml_file.h>
@@ -194,8 +195,8 @@ size_t sml_transport_read(int fd, unsigned char *buffer, size_t max_len) {
     FD_ZERO(&readfds);
     FD_SET(fd, &readfds);
 
-    unsigned char buf[max_len];
-    memset(buf, 0, max_len);
+    std::vector<unsigned char> buf(max_len);
+    memset(buf.data(), 0, max_len);
     unsigned int len = 0;
 
     if (max_len < 8) {
