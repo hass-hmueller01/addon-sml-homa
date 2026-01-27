@@ -46,6 +46,7 @@
 #include <thread>
 
 /* project internal includes */
+#include "Logger.h"
 #include "MqttClient.h"
 #include "SML.h"
 
@@ -79,68 +80,68 @@ int main(int argc, char** argv) {
             config = YAML::LoadFile(optarg);
             if (config["host"]) {
                 host = config["host"].as<std::string>();
-                if (verbose) std::cout << "Using yaml config host: " << host << std::endl;
+                if (verbose) Logger::info("Using yaml config host: " + host);
             }
             if (config["port"]) {
                 port = config["port"].as<int>();
-                if (verbose) std::cout << "Using yaml config port: " << port << std::endl;
+                if (verbose) Logger::info("Using yaml config port: " + std::to_string(port));
             }
             if (config["qos"]) {
                 qos = config["qos"].as<int>();
-                if (verbose) std::cout << "Using yaml config qos: " << qos << std::endl;
+                if (verbose) Logger::info("Using yaml config qos: " + std::to_string(qos));
             }
             if (config["topic"]) {
                 topic = config["topic"].as<std::string>();
-                if (verbose) std::cout << "Using yaml config topic: " << topic << std::endl;
+                if (verbose) Logger::info("Using yaml config topic: " + topic);
             }
             if (config["id"]) {
                 id = config["id"].as<std::string>();
-                if (verbose) std::cout << "Using yaml config id: " << id << std::endl;
+                if (verbose) Logger::info("Using yaml config id: " + id);
             }
             if (config["username"]) {
                 username = config["username"].as<std::string>();
-                if (verbose) std::cout << "Using yaml config username: " << username << std::endl;
+                if (verbose) Logger::info("Using yaml config username: " + username);
             }
             if (config["password"]) {
                 password = config["password"].as<std::string>();
-                if (verbose) std::cout << "Using yaml config password: " << password << std::endl;
+                if (verbose) Logger::info("Using yaml config password: " + password);
             }
             if (config["device"]) {
                 device = config["device"].as<std::string>();
-                if (verbose) std::cout << "Using yaml config device: " << device << std::endl;
+                if (verbose) Logger::info("Using yaml config device: " + device);
             }
             break;
         case 'h':
             host = optarg;
-            if (verbose) std::cout << "Using command line config host: " << host << std::endl;
+            if (verbose) Logger::info("Using command line config host: " + host);
             break;
         case 'p':
             port = std::stoul(optarg);
-            if (verbose) std::cout << "Using command line config port: " << port << std::endl;
+            if (verbose) Logger::info("Using command line config port: " + std::to_string(port));
             break;
         case 'q':
             qos = std::stoul(optarg);
-            if (verbose) std::cout << "Using command line config qos: " << qos << std::endl;
+            if (verbose) Logger::info("Using command line config qos: " + std::to_string(qos));
             break;
         case 't':
             topic = optarg;
-            if (verbose) std::cout << "Using command line config topic: " << topic << std::endl;
+            if (verbose) Logger::info("Using command line config topic: " + topic);
             break;
         case 'i':
             id = optarg;
-            if (verbose) std::cout << "Using command line config id: " << id << std::endl;
+            if (verbose) Logger::info("Using command line config id: " + id);
             break;
         case 'u':
             username = optarg;
-            if (verbose) std::cout << "Using command line config username: " << username << std::endl;
+            if (verbose) Logger::info("Using command line config username: " + username);
             break;
         case 'P':
             password = optarg;
-            if (verbose) std::cout << "Using command line config password: " << password << std::endl;
+            if (verbose) Logger::info("Using command line config password: " + password);
             break;
         case 'd':
             device = optarg;
-            if (verbose) std::cout << "Using command line config device: " << device << std::endl;
+            if (verbose) Logger::info("Using command line config device: " + device);
             break;
         case 'v':
             verbose = true;
@@ -167,7 +168,7 @@ int main(int argc, char** argv) {
 
     /* mosquitto constructor */
     if (mosqpp::lib_init() != MOSQ_ERR_SUCCESS) {
-        std::cerr << "main: lib_init failed" << std::endl;
+        Logger::error("main: lib_init failed");
         return EXIT_FAILURE;
     }
 
@@ -209,15 +210,15 @@ int main(int argc, char** argv) {
         // init serial channel
         SML sml(device);
         if (!sml.is_open()) {
-            std::cerr << "main: sml.is_open() failed. Exit." << std::endl;
+            Logger::error("main: sml.is_open() failed. Exit.");
             return EXIT_FAILURE;
         }
 
         // listen on the serial device read channels and publish via MQTT, this call is blocking
         sml.transport_listen();
         if (!abortLoop) {
-            std::cerr << "main: sml.transport_listen() ended unexpectedly, retrying in 5s ..." << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            Logger::error("main: sml.transport_listen() ended unexpectedly, retrying in 20s ...");
+            std::this_thread::sleep_for(std::chrono::seconds(20));
         }
     }
 
@@ -226,7 +227,7 @@ int main(int argc, char** argv) {
 
     /* mosquitto destructor */
     if (mosqpp::lib_cleanup() != MOSQ_ERR_SUCCESS) {
-        std::cerr << "main: lib_cleanup failed" << std::endl;
+        Logger::error("main: lib_cleanup failed");
         return EXIT_FAILURE;
     }
 
