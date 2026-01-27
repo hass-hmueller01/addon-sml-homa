@@ -24,6 +24,7 @@
  */
 
 #include "SML.h"
+#include "Logger.h"
 
 /* C includes */
 #include <fcntl.h>
@@ -131,7 +132,7 @@ SML::SML(std::string device) : m_device(device),
 
     m_fd = open(m_device.c_str(), O_RDWR | O_NOCTTY | O_NDELAY);
     if (m_fd < 0) {
-        std::cerr << "open(" << device << "): " << strerror(errno) << std::endl;
+        Logger::error("SML: open(" + device + "): " + strerror(errno));
     }
 
     // set RTS
@@ -173,13 +174,13 @@ size_t sml_read(int fd, fd_set *set, unsigned char *buffer, size_t len) {
         int sel = select(fd + 1, set, 0, 0, 0);
         // int sel = select(fd + 1, set, 0, 0, &timeout);
         if (sel <= 0) {
-            std::cerr << "SML: sml_read(): select error " << sel << ", errno: " << errno << " - " << strerror(errno) << std::endl;
+            Logger::error("SML: sml_read(): select error " + std::to_string(sel) + ", errno: " + std::to_string(errno) + " - " + strerror(errno));
             return 0;  // timeout or error
         }
         if (FD_ISSET(fd, set)) {
             r = read(fd, &(buffer[tr]), len - tr);
             if (r <= 0) {
-                std::cerr << "SML: sml_read(): read error " << r << ", errno: " << errno << " - " << strerror(errno) << std::endl;
+                Logger::error("SML: sml_read(): read error " + std::to_string(r) + ", errno: " + std::to_string(errno) + " - " + strerror(errno));
                 // if (errno == EINTR || errno == EAGAIN)
                 //     continue; // should be ignored
                 return 0;
@@ -201,7 +202,7 @@ size_t sml_transport_read(int fd, unsigned char *buffer, size_t max_len) {
 
     if (max_len < 8) {
         // prevent buffer overflow
-        std::cerr << "SML: sml_transport_read(): error: passed buffer too small" << std::endl;
+        Logger::error("SML: sml_transport_read(): error: passed buffer too small");
         return 0;
     }
 
@@ -237,7 +238,7 @@ size_t sml_transport_read(int fd, unsigned char *buffer, size_t max_len) {
                 return len;
             } else {
                 // don't read other escaped sequences yet
-                std::cerr << "SML: sml_transport_read(): error: unrecognized sequence" << std::endl;
+                Logger::error("SML: sml_transport_read(): error: unrecognized sequence");
                 return 0;
             }
         }
@@ -265,7 +266,7 @@ void SML::transport_listen() {
         }
 
         if (buffer == nullptr || buffer_len < 16) {
-            std::cerr << "Transport error or device disconnected. Sleeping 1s ..." << std::endl;
+            Logger::error("SML: transport_listen(): Transport error or device disconnected. Sleeping 1s ...");
             sleep(1);  // reduce CPU usage
             return;
         }
@@ -283,7 +284,7 @@ void SML::transport_listen() {
                 for (entry = body->val_list; entry != NULL; entry = entry->next) {
                     /* check if valid */
                     if (!entry->value) {
-                        std::cerr << "Error in data stream. entry->value should not be NULL. Skipping this." << std::endl;
+                        Logger::error("SML: transport_listen(): Error in data stream. entry->value should not be NULL. Skipping this.");
                         continue;
                     }
 

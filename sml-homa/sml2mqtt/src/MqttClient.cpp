@@ -24,6 +24,7 @@
  */
 
 #include "MqttClient.h"
+#include "Logger.h"
 
 /* C++ includes */
 #include <iostream>
@@ -43,23 +44,22 @@ MqttClient::MqttClient(const char *host, int port,
     std::string topic = m_baseTopic + "/$state";
     std::string payload = "lost";
     if (will_set(topic.c_str(), payload.length(), payload.c_str(), m_qos, true) != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::MqttClient: will_set failed" << std::endl;
+        Logger::error("MqttClient::MqttClient: will_set failed");
     }
     */
 
     /* username/password */
     if (username_pw_set(username, password) != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::MqttClient: username_pw_set failed" << std::endl;
+        Logger::error("MqttClient::MqttClient: username_pw_set failed");
     }
 
     /* connect */
     int rc = connect_async(host, port);
     if (rc != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::MqttClient: connect_async failed"
-                  << " (" << mosqpp::strerror(rc) << ")" << std::endl;
+        Logger::error("MqttClient::MqttClient: connect_async failed (" + std::string(mosqpp::strerror(rc)) + ")");
     }
     if (loop_start() != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::MqttClient: loop_start failed" << std::endl;
+        Logger::error("MqttClient::MqttClient: loop_start failed");
     }
 }
 
@@ -69,14 +69,14 @@ MqttClient::~MqttClient() {
     std::string topic = m_baseTopic + "/$state";
     std::string payload = "disconnected";
     if (publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, true) != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::~MqttClient: publish failed" << std::endl;
+        Logger::error("MqttClient::~MqttClient: publish failed");
     }
     */
     if (disconnect() != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::~MqttClient: disconnect failed" << std::endl;
+        Logger::error("MqttClient::~MqttClient: disconnect failed");
     }
     if (loop_stop() != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::~MqttClient: loop_stop failed" << std::endl;
+        Logger::error("MqttClient::~MqttClient: loop_stop failed");
     }
 }
 
@@ -92,13 +92,11 @@ void MqttClient::publishOnChange(std::string topic, std::string payload, bool re
     /* publish */
     topic = m_baseTopic + "/" + topic;
     if (m_verbose) {
-        std::cout << topic << " set to " << payload << std::endl;
+        Logger::info(topic + " set to " + payload);
     }
     int rc = publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, retain);
     if (rc != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::publishOnChange: publish "
-                  << topic << " failed rc=" << rc
-                  << " (" << mosqpp::strerror(rc) << ")" << std::endl;
+        Logger::error("MqttClient::publishOnChange: publish " + topic + " failed rc=" + std::to_string(rc) + " (" + mosqpp::strerror(rc) + ")");
     }
 }
 
@@ -117,14 +115,14 @@ void MqttClient::on_connect(int rc) {
     std::string payload;
 
     if (rc != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::on_connect(" << rc << ")" << std::endl;
+        Logger::error("MqttClient::on_connect(" + std::to_string(rc) + ")");
     } else {
         /* publish $state = init */
         /* not used
         topic = m_baseTopic + "/$state";
         payload = "init";
         if (publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, true) != MOSQ_ERR_SUCCESS) {
-            std::cerr << "MqttClient::on_connect: publish('" << topic << "', '" << payload << "') failed" << std::endl;
+            Logger::error("MqttClient::on_connect: publish('" + topic + "', '" + payload + "') failed");
         }
         */
 
@@ -133,7 +131,7 @@ void MqttClient::on_connect(int rc) {
         topic = m_baseTopic + "/$name";
         payload = "SML";
         if (publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, true) != MOSQ_ERR_SUCCESS) {
-            std::cerr << "MqttClient::on_connect: publish('" << topic << "', '" << payload << "') failed" << std::endl;
+            Logger::error("MqttClient::on_connect: publish('" + topic + "', '" + payload + "') failed");
         }
         */
 
@@ -141,7 +139,7 @@ void MqttClient::on_connect(int rc) {
         /* not used by HomA
         topic = m_baseTopic + "/" + m_subscribeTopic;
         if (subscribe(nullptr, topic.c_str(), m_qos) != MOSQ_ERR_SUCCESS) {
-            std::cerr << "MqttClient::on_connect: subscribe failed" << std::endl;
+            Logger::error("MqttClient::on_connect: subscribe failed");
         }
         */
 
@@ -150,7 +148,7 @@ void MqttClient::on_connect(int rc) {
         topic = m_baseTopic + "/$state";
         payload = "ready";
         if (publish(nullptr, topic.c_str(), payload.length(), payload.c_str(), m_qos, true) != MOSQ_ERR_SUCCESS) {
-            std::cerr << "MqttClient::on_connect: publish('" << topic << "', '" << payload << "') failed" << std::endl;
+            Logger::error("MqttClient::on_connect: publish('" + topic + "', '" + payload + "') failed");
         }
         */
     }
@@ -170,9 +168,9 @@ void MqttClient::on_message(const struct mosquitto_message *message) {
 
 void MqttClient::on_disconnect(int rc) {
     if (rc != MOSQ_ERR_SUCCESS) {
-        std::cerr << "MqttClient::on_disconnect: Unexpected disconnect from broker. Reason code: " << rc << std::endl;
+        Logger::error("MqttClient::on_disconnect: Unexpected disconnect from broker. Reason code: " + std::to_string(rc));
     } else if (m_verbose) {
-        std::cout << "MqttClient::on_disconnect: disconnected" << std::endl;
+        Logger::info("MqttClient::on_disconnect: disconnected");
     }
 }
 
