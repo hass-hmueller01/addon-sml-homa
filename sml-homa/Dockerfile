@@ -4,6 +4,7 @@ ARG BUILD_FROM=ghcr.io/home-assistant/${BUILD_ARCH}-base:latest
 FROM $BUILD_FROM
 
 ENV LIBSML_VERSION="v1.1.3"
+ENV LOG_TIMESTAMP="%Y-%m-%d %T"
 
 RUN echo "alias l='ls --color=auto -alF'" >> /root/.bashrc
 
