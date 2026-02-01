@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.3.0] - 2026-02-01
 ### Changed
 - Increased retry timeout to 20s
 - Set LOG_TIMESTAMP to %Y-%m-%d %T
