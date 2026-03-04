@@ -38,7 +38,7 @@ RUN \
 
 # Cleanup
 RUN \
-    apk del --purge build-base git cmake util-linux-dev yaml-cpp-dev && \
+    apk del --rdepends build-base git cmake util-linux-dev yaml-cpp-dev && \
     rm -rf /tmp/* /var/tmp/* /usr/local/lib/pkgconfig /usr/local/src/*
 
 # Copy root filesystem
